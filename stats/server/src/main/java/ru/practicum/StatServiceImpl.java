@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @Service
@@ -20,6 +21,16 @@ public class StatServiceImpl implements StatService {
 
     @Override
     public List<StatsDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
-        return null;
+        List<Stats> stats;
+        if (uris == null || uris.isEmpty()) {
+            stats = unique ? endpointHitRepository.getStatsNoUrisUniqueIp(start, end)
+                    : endpointHitRepository.getStatsNoUrisNotUniqueIp(start, end);
+        } else {
+            stats = unique ? endpointHitRepository.getStatsWithUrisUniqueIp(start, end, uris)
+                    : endpointHitRepository.getStatsWithUrisNotUniqueIp(start, end, uris);
+        }
+        return stats.stream()
+                .map(StatsMapper::toStatsDto)
+                .collect(Collectors.toList());
     }
 }
