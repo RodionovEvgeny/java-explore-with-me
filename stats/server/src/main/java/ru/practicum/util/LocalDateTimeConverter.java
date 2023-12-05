@@ -1,4 +1,4 @@
-package ru.practicum;
+package ru.practicum.util;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.lang.NonNull;

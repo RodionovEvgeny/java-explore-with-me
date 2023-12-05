@@ -1,14 +1,16 @@
-package ru.practicum;
+package ru.practicum.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import ru.practicum.model.EndpointHit;
+import ru.practicum.model.Stats;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 public interface EndpointHitRepository extends JpaRepository<EndpointHit, Long> {
     @Query("""
-            SELECT new ru.practicum.Stats(e.app, e.uri, COUNT(e.ip))
+            SELECT new ru.practicum.model.Stats(e.app, e.uri, COUNT(e.ip))
             FROM EndpointHit AS e
             WHERE e.timestamp >= ?1
             AND e.timestamp <= ?2
@@ -17,7 +19,7 @@ public interface EndpointHitRepository extends JpaRepository<EndpointHit, Long> 
     List<Stats> getStatsNoUrisNotUniqueIp(LocalDateTime start, LocalDateTime end);
 
     @Query("""
-            SELECT new ru.practicum.Stats(e.app, e.uri, COUNT(DISTINCT e.ip))
+            SELECT new ru.practicum.model.Stats(e.app, e.uri, COUNT(DISTINCT e.ip))
             FROM EndpointHit AS e
             WHERE e.timestamp >= ?1
             AND e.timestamp <= ?2
@@ -26,7 +28,7 @@ public interface EndpointHitRepository extends JpaRepository<EndpointHit, Long> 
     List<Stats> getStatsNoUrisUniqueIp(LocalDateTime start, LocalDateTime end);
 
     @Query("""
-            SELECT new ru.practicum.Stats(e.app, e.uri, COUNT(e.ip))
+            SELECT new ru.practicum.model.Stats(e.app, e.uri, COUNT(e.ip))
             FROM EndpointHit AS e
             WHERE e.timestamp >= ?1
             AND e.timestamp <= ?2
@@ -36,7 +38,7 @@ public interface EndpointHitRepository extends JpaRepository<EndpointHit, Long> 
     List<Stats> getStatsWithUrisNotUniqueIp(LocalDateTime start, LocalDateTime end, List<String> uris);
 
     @Query("""
-            SELECT new ru.practicum.Stats(e.app, e.uri, COUNT(DISTINCT e.ip))
+            SELECT new ru.practicum.model.Stats(e.app, e.uri, COUNT(DISTINCT e.ip))
             FROM EndpointHit AS e
             WHERE e.timestamp >= ?1
             AND e.timestamp <= ?2

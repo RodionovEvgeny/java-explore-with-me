@@ -1,4 +1,7 @@
-package ru.practicum;
+package ru.practicum.srevice;
+
+import ru.practicum.EndpointHitDto;
+import ru.practicum.StatsDto;
 
 import java.time.LocalDateTime;
 import java.util.List;

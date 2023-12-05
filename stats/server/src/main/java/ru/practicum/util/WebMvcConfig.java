@@ -1,4 +1,4 @@
-package ru.practicum;
+package ru.practicum.util;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
