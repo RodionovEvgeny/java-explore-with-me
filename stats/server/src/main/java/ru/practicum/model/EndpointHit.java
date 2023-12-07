@@ -3,6 +3,7 @@ package ru.practicum.model;
 import lombok.Builder;
 import lombok.Data;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -16,13 +17,12 @@ public class EndpointHit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    // @Column(name = "")
+    @Column(name = "app")
     private String app;
-    //  @Column(name = "")
+    @Column(name = "uri")
     private String uri;
-    //   @Column(name = "")
+    @Column(name = "ip")
     private String ip;
-    //  @Column(name = "")
-
+    @Column(name = "timestamp")
     private LocalDateTime timestamp;
 }

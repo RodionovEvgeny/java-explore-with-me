@@ -1,6 +1,6 @@
 package ru.practicum.srevice;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.EndpointHitDto;
 import ru.practicum.StatsDto;
@@ -14,8 +14,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Data
 @Service
+@AllArgsConstructor
 public class StatServiceImpl implements StatService {
 
     private final EndpointHitRepository endpointHitRepository;
