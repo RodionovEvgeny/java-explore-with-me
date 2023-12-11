@@ -1,4 +1,4 @@
-package ru.practicum.service;
+package ru.practicum.service.user;
 
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +9,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.service.RequestConfirmRequest;
+import ru.practicum.service.RequestConfirmResponse;
+import ru.practicum.service.RequestDto;
+import ru.practicum.service.event.EventDto;
+import ru.practicum.service.event.EventFullDto;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -34,9 +39,9 @@ public class UserController {
     }
 
     @GetMapping("/{userId}/events/{eventId}")
-    public EventDtoExtended getEventById(@PathVariable Integer userId,
-                                         @PathVariable Integer eventId) {
-        return userService.getEventById(userId, eventId);
+    public EventFullDto getUsersEventById(@PathVariable Integer userId,
+                                          @PathVariable Integer eventId) {
+        return userService.getUsersEventById(userId, eventId);
     }
 
     @PatchMapping("/{userId}/events/{eventId}")

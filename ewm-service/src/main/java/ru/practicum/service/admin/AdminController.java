@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.service.CategoryDto;
+import ru.practicum.service.category.CategoryDto;
 import ru.practicum.service.CompilationDto;
-import ru.practicum.service.EventDto;
-import ru.practicum.service.UserDto;
+import ru.practicum.service.event.EventDto;
+import ru.practicum.service.user.UserDto;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
