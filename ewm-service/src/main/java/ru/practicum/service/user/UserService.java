@@ -1,11 +1,9 @@
 package ru.practicum.service.user;
 
-import ru.practicum.service.event.EventDto;
 import ru.practicum.service.event.EventFullDto;
 import ru.practicum.service.event.EventShortDto;
 import ru.practicum.service.event.NewEventDto;
 import ru.practicum.service.event.UpdateEventAdminRequest;
-import ru.practicum.service.event.UpdateEventUserRequest;
 
 import java.util.List;
 

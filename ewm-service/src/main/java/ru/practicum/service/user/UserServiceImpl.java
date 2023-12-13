@@ -15,7 +15,6 @@ import ru.practicum.service.event.EventShortDto;
 import ru.practicum.service.event.EventStatus;
 import ru.practicum.service.event.NewEventDto;
 import ru.practicum.service.event.UpdateEventAdminRequest;
-import ru.practicum.service.event.UpdateEventUserRequest;
 import ru.practicum.service.exceptions.BadRequestException;
 import ru.practicum.service.exceptions.ConflictException;
 import ru.practicum.service.exceptions.EntityNotFoundException;
@@ -31,7 +30,6 @@ public class UserServiceImpl implements UserService {
     private final EventRepository eventRepository;
     private final CategoryRepository categoryRepository;
     private final CategoryService categoryService;
-
 
 
     @Override

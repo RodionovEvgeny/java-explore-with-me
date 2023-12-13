@@ -1,7 +1,5 @@
 package ru.practicum.service.event;
 
-import ru.practicum.service.SortState;
-
 import java.time.LocalDateTime;
 import java.util.List;
 

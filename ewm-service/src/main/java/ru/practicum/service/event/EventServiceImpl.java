@@ -6,7 +6,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.StatsClient;
 import ru.practicum.StatsDto;
-import ru.practicum.service.SortState;
 import ru.practicum.service.category.CategoryService;
 import ru.practicum.service.exceptions.EntityNotFoundException;
 
@@ -60,7 +59,6 @@ public class EventServiceImpl implements EventService {
         Event updatedEvent = eventRepository.save(EventMapper.updateEvent(eventToUpdate, updateEvent));
         return EventMapper.toEventFullDto(updatedEvent);
     }
-
 
 
     private Event validateEventById(long eventId) {

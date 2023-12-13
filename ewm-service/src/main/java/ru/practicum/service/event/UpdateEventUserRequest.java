@@ -5,7 +5,6 @@ import lombok.Data;
 import ru.practicum.service.location.Location;
 
 import javax.validation.constraints.Future;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 

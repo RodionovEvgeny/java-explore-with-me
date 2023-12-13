@@ -61,6 +61,7 @@ public class EventMapper {
                 .state(EventStatus.PENDING)
                 .build();
     }
+
     public static Event updateEvent(Event eventToUpdate, UpdateEventAdminRequest updateEvent) {
         if (updateEvent.getAnnotation() != null) {
             eventToUpdate.setAnnotation(updateEvent.getAnnotation());
