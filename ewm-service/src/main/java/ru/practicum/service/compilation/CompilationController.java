@@ -16,15 +16,15 @@ public class CompilationController {
 
     private final CompilationService compilationService;
 
-    @GetMapping("/{userId}/events")
-    public List<CompilationDto> getCompilations(@RequestParam Boolean pinned,
+    @GetMapping
+    public List<CompilationDto> getCompilations(@RequestParam(required = false) Boolean pinned,
                                                 @RequestParam(defaultValue = "0") Integer from,
                                                 @RequestParam(defaultValue = "10") Integer size) {
         return compilationService.getCompilations(pinned, from, size);
     }
 
     @GetMapping("/{compId}")
-    public CompilationDto getCompilationById(@PathVariable Integer compId) {
+    public CompilationDto getCompilationById(@PathVariable Long compId) {
         return compilationService.getCompilationById(compId);
     }
 }
