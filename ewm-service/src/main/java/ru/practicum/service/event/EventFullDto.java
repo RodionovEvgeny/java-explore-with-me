@@ -7,6 +7,7 @@ import ru.practicum.service.location.LocationDto;
 import ru.practicum.service.user.UserShortDto;
 
 import java.time.LocalDateTime;
+
 @Builder
 public class EventFullDto {
     private long id;

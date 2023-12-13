@@ -1,4 +1,4 @@
-package ru.practicum.service;
+package ru.practicum.service.compilation;
 
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
