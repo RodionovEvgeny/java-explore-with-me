@@ -54,50 +54,14 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto updateEventByAdmin(Long eventId, UpdateEventAdminRequest updateEvent) {
         Event eventToUpdate = validateEventById(eventId);
-        Event updatedEvent = eventRepository.save(mergeEvents(eventToUpdate, updateEvent));
-        return EventMapper.toEventFullDto(updatedEvent);
-    }
-
-    private Event mergeEvents(Event eventToUpdate, UpdateEventAdminRequest updateEvent) {
-        if (updateEvent.getAnnotation() != null) {
-            eventToUpdate.setAnnotation(updateEvent.getAnnotation());
-        }
         if (updateEvent.getCategory() != null) {
             eventToUpdate.setCategory(categoryService.getCategoryById(updateEvent.getCategory()));
         }
-        if (updateEvent.getDescription() != null) {
-            eventToUpdate.setDescription(updateEvent.getDescription());
-        }
-        if (updateEvent.getEventDate() != null) {
-            eventToUpdate.setEventDate(updateEvent.getEventDate());
-        }
-        if (updateEvent.getLocation() != null) {
-            eventToUpdate.setLocation(updateEvent.getLocation());
-        }
-        if (updateEvent.getPaid() != null) {
-            eventToUpdate.setPaid(updateEvent.getPaid());
-        }
-        if (updateEvent.getParticipantLimit() != null) {
-            eventToUpdate.setParticipantLimit(updateEvent.getParticipantLimit());
-        }
-        if (updateEvent.getRequestModeration() != null) {
-            eventToUpdate.setRequestModeration(updateEvent.getRequestModeration());
-        }
-        if (updateEvent.getStateAction() != null) {
-            switch (updateEvent.getStateAction()) {
-                case REJECT_EVENT:
-                    eventToUpdate.setState(EventStatus.PUBLISHED);
-                    break;
-                case PUBLISH_EVENT:
-                    eventToUpdate.setState(EventStatus.CANCELED);
-                    break;
-            }
-        }
-        if (updateEvent.getTitle() != null) {
-            eventToUpdate.setTitle(updateEvent.getTitle());
-        }
-        return eventToUpdate;
+        Event updatedEvent = eventRepository.save(EventMapper.updateEvent(eventToUpdate, updateEvent));
+        return EventMapper.toEventFullDto(updatedEvent);
     }
+
+
 
     private Event validateEventById(long eventId) {
         return eventRepository.findById(eventId).orElseThrow(() -> new EntityNotFoundException(

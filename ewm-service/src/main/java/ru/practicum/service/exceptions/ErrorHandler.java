@@ -13,14 +13,6 @@ import javax.validation.ConstraintViolationException;
 @RestControllerAdvice
 public class ErrorHandler {
 
-    @ExceptionHandler({NoAccessException.class,
-            InappropriateUserException.class})
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ExceptionDTO handleSimpleNotFoundException(final Exception e) {
-        log.error(e.getMessage());
-        return new ExceptionDTO(e.getMessage());
-    }
-
     @ExceptionHandler(EntityNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ExceptionDTO handleEntityNotFoundException(final EntityNotFoundException e) {
@@ -29,9 +21,7 @@ public class ErrorHandler {
         return new ExceptionDTO(e.getMessage());
     }
 
-    @ExceptionHandler({ItemNotAvailableException.class,
-            InappropriateTimeException.class,
-            UnsupportedStatusException.class,
+    @ExceptionHandler({BadRequestException.class,
             ConstraintViolationException.class,
             MethodArgumentNotValidException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -40,14 +30,13 @@ public class ErrorHandler {
         return new ExceptionDTO(e.getMessage());
     }
 
-    @ExceptionHandler(EmailAlreadyExistsException.class)
+    @ExceptionHandler(ConflictException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ExceptionDTO handleConflictException(final Exception e) {
         log.error(e.getMessage());
         return new ExceptionDTO(e.getMessage());
     }
 
-    @ExceptionHandler(UnknownBookingException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ExceptionDTO handleInternalServerErrorException(final Exception e) {
         log.error(e.getMessage());

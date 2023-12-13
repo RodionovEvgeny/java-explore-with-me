@@ -34,7 +34,7 @@ public class Event { //TODO проверить имена колонок в бд
     private Category category;
 
     @Column(name = "confirmed_requests", nullable = false)
-    private long confirmedRequests;
+    private int confirmedRequests;
 
     @Column(name = "created_on", nullable = false)
     private LocalDateTime createdOn;

@@ -5,11 +5,12 @@ import lombok.Data;
 import ru.practicum.service.location.Location;
 
 import javax.validation.constraints.Future;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 @Data
-public class UpdateEventAdminRequest {
+public class UpdateEventUserRequest {
     @Size(min = 20, max = 2000)
     private String annotation;
     private Long category;

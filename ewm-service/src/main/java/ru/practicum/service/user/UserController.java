@@ -9,11 +9,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.service.RequestConfirmRequest;
-import ru.practicum.service.RequestConfirmResponse;
-import ru.practicum.service.RequestDto;
-import ru.practicum.service.event.EventDto;
 import ru.practicum.service.event.EventFullDto;
+import ru.practicum.service.event.EventShortDto;
+import ru.practicum.service.event.NewEventDto;
+import ru.practicum.service.event.UpdateEventAdminRequest;
+import ru.practicum.service.request.EventRequestStatusUpdateRequest;
+import ru.practicum.service.request.EventRequestStatusUpdateResult;
+import ru.practicum.service.request.ParticipationRequestDto;
+import ru.practicum.service.request.RequestService;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -24,60 +27,62 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final RequestService requestService;
+
 
     @GetMapping("/{userId}/events")
-    public List<EventDto> getUsersEvents(@PathVariable Integer userId,
-                                         @RequestParam(defaultValue = "0") Integer from,
-                                         @RequestParam(defaultValue = "10") Integer size) {
+    public List<EventShortDto> getUsersEvents(@PathVariable Long userId,
+                                              @RequestParam(defaultValue = "0") Integer from,
+                                              @RequestParam(defaultValue = "10") Integer size) {
         return userService.getUsersEvents(userId, from, size);
     }
 
     @PostMapping("/{userId}/events")
-    public EventDto addEvent(@PathVariable Integer userId,
-                             @RequestBody @Valid EventDto eventDto) {
-        return userService.addEvent(userId, eventDto);
+    public EventFullDto addEvent(@PathVariable Long userId,
+                                 @RequestBody @Valid NewEventDto newEventDto) {
+        return userService.addEvent(userId, newEventDto);
     }
 
     @GetMapping("/{userId}/events/{eventId}")
-    public EventFullDto getUsersEventById(@PathVariable Integer userId,
-                                          @PathVariable Integer eventId) {
+    public EventFullDto getUsersEventById(@PathVariable Long userId,
+                                          @PathVariable Long eventId) {
         return userService.getUsersEventById(userId, eventId);
     }
 
     @PatchMapping("/{userId}/events/{eventId}")
-    public EventDto updateEventByUser(@PathVariable(name = "userId") Integer userId,
-                                      @PathVariable(name = "eventId") Integer eventId,
-                                      @RequestBody @Valid EventDto eventDto) {
-        return userService.updateEventByUser(userId, eventId, eventDto);
+    public EventFullDto updateEventByUser(@PathVariable(name = "userId") Long userId,
+                                          @PathVariable(name = "eventId") Long eventId,
+                                          @RequestBody @Valid UpdateEventAdminRequest updateEvent) {
+        return userService.updateEventByUser(userId, eventId, updateEvent);
     }
 
     @GetMapping("/{userId}/events/{eventId}/requests")
-    public List<RequestDto> getRequests(@PathVariable Integer userId,
-                                        @PathVariable Integer eventId) {
-        return userService.getRequests(userId, eventId);
+    public List<ParticipationRequestDto> getRequests(@PathVariable Long userId,
+                                                     @PathVariable Long eventId) {
+        return requestService.getRequests(userId, eventId);
     }
 
     @PatchMapping("/{userId}/events/{eventId}/requests")
-    public RequestConfirmResponse confirmRequests(@PathVariable Integer userId,
-                                                  @PathVariable Integer eventId,
-                                                  @RequestBody RequestConfirmRequest requestConfirmRequest) {
-        return userService.confirmRequests(userId, eventId, requestConfirmRequest);
+    public EventRequestStatusUpdateResult confirmRequests(@PathVariable Long userId,
+                                                          @PathVariable Long eventId,
+                                                          @RequestBody EventRequestStatusUpdateRequest EventRequest) {
+        return requestService.confirmRequests(userId, eventId, EventRequest);
     }
 
     @GetMapping("/{userId}/requests")
-    public List<RequestDto> getUsersRequests(@PathVariable Integer userId) {
-        return userService.getUsersRequests(userId);
+    public List<ParticipationRequestDto> getUsersRequests(@PathVariable Long userId) {
+        return requestService.getUsersRequests(userId);
     }
 
     @PostMapping("/{userId}/requests")
-    public RequestDto addRequest(@PathVariable Integer userId,
-                                 @RequestParam Integer eventId) {
-        return userService.addRequest(userId, eventId);
+    public ParticipationRequestDto addRequest(@PathVariable Long userId,
+                                              @RequestParam Long eventId) {
+        return requestService.addRequest(userId, eventId);
     }
 
     @PatchMapping("/{userId}/requests/{requestId}/cancel")
-    public RequestDto cancelRequest(@PathVariable Integer userId,
-                                    @PathVariable Integer requestId) {
-        return userService.cancelRequest(userId, requestId);
+    public ParticipationRequestDto cancelRequest(@PathVariable Long userId,
+                                                 @PathVariable Long requestId) {
+        return requestService.cancelRequest(userId, requestId);
     }
 }
