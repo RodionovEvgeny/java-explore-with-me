@@ -32,7 +32,6 @@ import java.util.List;
 @AllArgsConstructor
 public class AdminController {
 
-    private final AdminService adminService;
     private final CategoryService categoryService;
     private final EventService eventService;
     private final UserService userService;

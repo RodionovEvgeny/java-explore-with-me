@@ -16,11 +16,13 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import java.time.LocalDateTime;
 
 @Entity
 @Builder
 @Data
+@Table(name = "events")
 public class Event { //TODO проверить имена колонок в бд и добавить туда, где их нет
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
