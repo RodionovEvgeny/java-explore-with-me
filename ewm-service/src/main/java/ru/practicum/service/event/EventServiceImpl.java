@@ -15,18 +15,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-//@AllArgsConstructor
+@AllArgsConstructor
 public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final StatsClient statsClient;
     private final CategoryService categoryService;
-
-    @Autowired
-    public EventServiceImpl(EventRepository eventRepository, StatsClient statsClient, CategoryService categoryService) {
-        this.eventRepository = eventRepository;
-        this.statsClient = statsClient;
-        this.categoryService = categoryService;
-    }
 
     @Override
     public List<EventShortDto> getAllEvents(String text, List<Long> categories, Boolean paid, LocalDateTime rangeStart,
