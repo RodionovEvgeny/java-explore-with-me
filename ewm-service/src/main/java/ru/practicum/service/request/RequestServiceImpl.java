@@ -2,6 +2,7 @@ package ru.practicum.service.request;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.service.event.Event;
 import ru.practicum.service.event.EventRepository;
 import ru.practicum.service.event.EventStatus;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
+@Transactional
 public class RequestServiceImpl implements RequestService {
 
     private final RequestRepository requestRepository;

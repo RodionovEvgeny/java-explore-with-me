@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -29,7 +30,8 @@ public class EventController {
                                             @RequestParam(defaultValue = "false") Boolean onlyAvailable,
                                             @RequestParam(required = false) SortState sort,
                                             @RequestParam(defaultValue = "0") Integer from,
-                                            @RequestParam(defaultValue = "10") Integer size) {
+                                            @RequestParam(defaultValue = "10") Integer size,
+                                            HttpServletRequest request) {
         LocalDateTime start;
         LocalDateTime end;
 
@@ -40,16 +42,17 @@ public class EventController {
         }
 
         if (rangeEnd == null) {
-            end = LocalDateTime.MAX;
+            end = LocalDateTime.now().plusYears(10);
         } else {
             end = LocalDateTime.parse(rangeEnd, FORMATTER);
         }
 
-        return eventService.getAllEvents(text, categories, paid, start, end, onlyAvailable, sort, from, size);
+        return eventService.getAllEvents(text, categories, paid, start, end, onlyAvailable, sort, from, size, request);
     }
 
     @GetMapping("/{id}")
-    public EventFullDto getEventById(@PathVariable(name = "id") Integer eventId) {
-        return eventService.getEventById(eventId);
+    public EventFullDto getEventById(@PathVariable(name = "id", required = false) Long eventId,
+                                     HttpServletRequest request) {
+        return eventService.getEventById(eventId, request);
     }
 }

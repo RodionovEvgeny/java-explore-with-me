@@ -75,7 +75,7 @@ public class AdminController {
         }
 
         if (rangeEnd == null) {
-            end = LocalDateTime.MAX;
+            end = LocalDateTime.now().plusYears(10);
         } else {
             end = LocalDateTime.parse(rangeEnd, FORMATTER);
         }

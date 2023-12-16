@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.service.category.Category;
 import ru.practicum.service.category.CategoryRepository;
 import ru.practicum.service.category.CategoryService;
@@ -18,6 +19,7 @@ import ru.practicum.service.event.UpdateEventAdminRequest;
 import ru.practicum.service.exceptions.BadRequestException;
 import ru.practicum.service.exceptions.ConflictException;
 import ru.practicum.service.exceptions.EntityNotFoundException;
+import ru.practicum.service.location.LocationRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,16 +27,25 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
+@Transactional
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final CategoryRepository categoryRepository;
+    private final LocationRepository locationRepository;
+
     private final CategoryService categoryService;
 
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserDto> getUsers(List<Long> users, Integer from, Integer size) {
         Pageable pageable = PageRequest.of(from / size, size);
+        if (users == null || users.size() == 0) {
+            return userRepository.findAll(pageable).stream()
+                    .map(UserMapper::toUserDto)
+                    .collect(Collectors.toList());
+        }
         return userRepository.findAllByIdIn(users, pageable).stream()
                 .map(UserMapper::toUserDto)
                 .collect(Collectors.toList());
@@ -69,7 +80,8 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("Публикация события невозможно позднее чем за два часа до него.");
         }
         if (newEventDto.getRequestModeration() == null) newEventDto.setRequestModeration(Boolean.TRUE);
-        Event event = EventMapper.toEventFromNewEventDto(newEventDto, user, category, createdOn);
+        locationRepository.save(newEventDto.getLocation());
+        Event event = eventRepository.save(EventMapper.toEventFromNewEventDto(newEventDto, user, category, createdOn));
         return EventMapper.toEventFullDto(event);
     }
 

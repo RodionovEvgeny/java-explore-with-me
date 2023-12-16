@@ -1,6 +1,7 @@
 package ru.practicum.service.user;
 
 import lombok.AllArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,7 +41,8 @@ public class UserController {
     @PostMapping("/{userId}/events")
     public EventFullDto addEvent(@PathVariable Long userId,
                                  @RequestBody @Valid NewEventDto newEventDto) {
-        return userService.addEvent(userId, newEventDto);
+        EventFullDto eventFullDto = userService.addEvent(userId, newEventDto);
+        return eventFullDto;
     }
 
     @GetMapping("/{userId}/events/{eventId}")
@@ -50,8 +52,8 @@ public class UserController {
     }
 
     @PatchMapping("/{userId}/events/{eventId}")
-    public EventFullDto updateEventByUser(@PathVariable(name = "userId") Long userId,
-                                          @PathVariable(name = "eventId") Long eventId,
+    public EventFullDto updateEventByUser(@PathVariable Long userId,
+                                          @PathVariable Long eventId,
                                           @RequestBody @Valid UpdateEventAdminRequest updateEvent) {
         return userService.updateEventByUser(userId, eventId, updateEvent);
     }

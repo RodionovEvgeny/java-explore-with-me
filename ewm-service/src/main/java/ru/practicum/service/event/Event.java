@@ -1,7 +1,9 @@
 package ru.practicum.service.event;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import ru.practicum.service.category.Category;
 import ru.practicum.service.location.Location;
 import ru.practicum.service.user.User;
@@ -23,6 +25,8 @@ import java.time.LocalDateTime;
 @Builder
 @Data
 @Table(name = "events")
+@AllArgsConstructor
+@NoArgsConstructor
 public class Event { //TODO проверить имена колонок в бд и добавить туда, где их нет
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

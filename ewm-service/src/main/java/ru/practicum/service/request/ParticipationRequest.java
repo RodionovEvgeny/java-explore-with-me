@@ -1,7 +1,9 @@
 package ru.practicum.service.request;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import ru.practicum.service.event.Event;
 import ru.practicum.service.user.User;
 
@@ -21,6 +23,8 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 @Table(name = "requests")
+@AllArgsConstructor
+@NoArgsConstructor
 public class ParticipationRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

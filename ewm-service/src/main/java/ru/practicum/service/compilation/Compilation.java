@@ -1,7 +1,9 @@
 package ru.practicum.service.compilation;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import ru.practicum.service.event.Event;
 
 import javax.persistence.Column;
@@ -19,6 +21,8 @@ import java.util.List;
 @Entity
 @Builder
 @Table(name = "compilations")
+@AllArgsConstructor
+@NoArgsConstructor
 public class Compilation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

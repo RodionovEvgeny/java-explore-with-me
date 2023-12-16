@@ -1,21 +1,24 @@
 package ru.practicum.service.event;
 
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.StatsClient;
 import ru.practicum.StatsDto;
 import ru.practicum.service.category.CategoryService;
+import ru.practicum.service.exceptions.BadRequestException;
 import ru.practicum.service.exceptions.EntityNotFoundException;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
+@Transactional
 public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final StatsClient statsClient;
@@ -24,7 +27,11 @@ public class EventServiceImpl implements EventService {
     @Override
     public List<EventShortDto> getAllEvents(String text, List<Long> categories, Boolean paid, LocalDateTime rangeStart,
                                             LocalDateTime rangeEnd, Boolean onlyAvailable, SortState sort, Integer from,
-                                            Integer size) {
+                                            Integer size, HttpServletRequest request) {
+        if (rangeEnd.isBefore(rangeStart)) {
+            throw new BadRequestException("Дата конца выборки не может быть раньше даты начала выборки");
+        }
+        statsClient.addHit(request, "main_service");
         Pageable pageable = PageRequest.of(from / size, size);
         List<Event> events = eventRepository.getAllEvents(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, pageable);
         return events.stream()
@@ -34,8 +41,10 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public EventFullDto getEventById(Integer eventId) {
-        return EventMapper.toEventFullDto(validateEventById(eventId));
+    public EventFullDto getEventById(Long eventId, HttpServletRequest request) {
+        Event event = validateEventById(eventId);
+        statsClient.addHit(request, "main_service");
+        return EventMapper.toEventFullDto(event);
     }
 
     @Override
@@ -43,7 +52,12 @@ public class EventServiceImpl implements EventService {
                                                LocalDateTime rangeStart, LocalDateTime rangeEnd, Integer from,
                                                Integer size) {
         Pageable pageable = PageRequest.of(from / size, size);
-        List<Event> events = eventRepository.getAllEventsByAdmin(users, states, categories, rangeStart, rangeEnd, pageable);
+        List<Event> events;
+        if (users == null && states == null && categories == null && rangeStart == null && rangeEnd == null) {
+            events = eventRepository.findAll(pageable).toList();
+        } else {
+            events = eventRepository.getAllEventsByAdmin(users, states, categories, rangeStart, rangeEnd, pageable);
+        }
         return events.stream()
                 .map(this::addViews)
                 .map(EventMapper::toEventFullDto)
@@ -61,7 +75,7 @@ public class EventServiceImpl implements EventService {
     }
 
 
-    private Event validateEventById(long eventId) {
+    private Event validateEventById(Long eventId) {
         return eventRepository.findById(eventId).orElseThrow(() -> new EntityNotFoundException(
                 String.format("Событие с id = %s не найдено!", eventId),
                 Event.class.getName()));

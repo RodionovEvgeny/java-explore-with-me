@@ -2,10 +2,13 @@ package ru.practicum.service.category;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.service.exceptions.ConflictException;
 import ru.practicum.service.exceptions.EntityNotFoundException;
 
 @Service
 @AllArgsConstructor
+@Transactional
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
@@ -44,7 +47,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     private void validateCategoryName(String name) {
         if (!categoryRepository.findByName(name).isEmpty()) {
-            throw new RuntimeException(String.format("Категория с именем = %s уже существует!", name));
+            throw new ConflictException(String.format("Категория с именем = %s уже существует!", name));
         }
     }
 }
