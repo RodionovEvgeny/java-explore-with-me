@@ -13,7 +13,6 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -58,20 +57,21 @@ public class StatsClientImpl implements StatsClient {
     public List<StatsDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-        String uri = UriComponentsBuilder.fromHttpUrl("/stats")
+        /*String uri = UriComponentsBuilder.fromHttpUrl("/stats")
                 .queryParam("start", start.format(formatter))
                 .queryParam("end", end.format(formatter))
                 .queryParam("uris", uris)
                 .queryParam("unique", unique)
-                .toUriString();
+                .toUriString();*/
 
         ResponseEntity<List<StatsDto>> response =
                 restTemplate.exchange(
-                        uri,
+                        "/stats?start={start}&end={end}&uris={uris}&unique={unique}",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         new ParameterizedTypeReference<List<StatsDto>>() {
-                        });
+                        },
+                        start.format(formatter), end.format(formatter), uris, unique);
         return response.getBody();
     }
 }

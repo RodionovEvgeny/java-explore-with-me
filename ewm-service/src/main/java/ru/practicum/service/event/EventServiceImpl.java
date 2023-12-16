@@ -13,6 +13,7 @@ import ru.practicum.service.exceptions.EntityNotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,16 +25,37 @@ public class EventServiceImpl implements EventService {
     private final StatsClient statsClient;
     private final CategoryService categoryService;
 
+    private final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     @Override
-    public List<EventShortDto> getAllEvents(String text, List<Long> categories, Boolean paid, LocalDateTime rangeStart,
-                                            LocalDateTime rangeEnd, Boolean onlyAvailable, SortState sort, Integer from,
+    public List<EventShortDto> getAllEvents(String text, List<Long> categories, Boolean paid, String rangeStart,
+                                            String rangeEnd, Boolean onlyAvailable, SortState sort, Integer from,
                                             Integer size, HttpServletRequest request) {
-        if (rangeEnd.isBefore(rangeStart)) {
-            throw new BadRequestException("Дата конца выборки не может быть раньше даты начала выборки");
-        }
+
         statsClient.addHit(request, "main_service");
         Pageable pageable = PageRequest.of(from / size, size);
-        List<Event> events = eventRepository.getAllEvents(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, pageable);
+        List<Event> events;
+
+        if (text == null && categories == null && paid == null && rangeStart == null && rangeEnd == null && onlyAvailable == null && sort == null) {
+            events = eventRepository.findAll(pageable).toList();
+        } else {
+            LocalDateTime start;
+            LocalDateTime end;
+            if (rangeStart == null) {
+                start = LocalDateTime.now();
+            } else {
+                start = LocalDateTime.parse(rangeStart, FORMATTER);
+            }
+            if (rangeEnd == null) {
+                end = LocalDateTime.now().plusYears(10);
+            } else {
+                end = LocalDateTime.parse(rangeEnd, FORMATTER);
+            }
+            if (end.isBefore(start)) {
+                throw new BadRequestException("Дата конца выборки не может быть раньше даты начала выборки");
+            }
+            events = eventRepository.getAllEvents(text, categories, paid, start, end, onlyAvailable, pageable);
+        }
         return events.stream()
                 .map(this::addViews)
                 .map(EventMapper::toEventShortDto)
@@ -83,8 +105,10 @@ public class EventServiceImpl implements EventService {
 
     private Event addViews(Event event) {
         String uri = "/events/" + event.getId();
-        List<StatsDto> stats = statsClient.getStats(LocalDateTime.MIN, LocalDateTime.now(), List.of(uri), Boolean.FALSE);
-        event.setViews(stats.get(0).getHits()); // TODO хз хз непонятно опка работает ли это вообще
+        List<StatsDto> stats = statsClient.getStats(LocalDateTime.now().minusYears(1000), LocalDateTime.now(), List.of(uri), Boolean.FALSE);
+        if (!stats.isEmpty()) {
+            event.setViews(stats.get(0).getHits());
+        }
         return event;
     }
 }

@@ -18,7 +18,7 @@ import java.util.List;
 public class EventController {
 
     private final EventService eventService;
-    private final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
 
 
     @GetMapping
@@ -32,22 +32,9 @@ public class EventController {
                                             @RequestParam(defaultValue = "0") Integer from,
                                             @RequestParam(defaultValue = "10") Integer size,
                                             HttpServletRequest request) {
-        LocalDateTime start;
-        LocalDateTime end;
 
-        if (rangeStart == null) {
-            start = LocalDateTime.now();
-        } else {
-            start = LocalDateTime.parse(rangeStart, FORMATTER);
-        }
 
-        if (rangeEnd == null) {
-            end = LocalDateTime.now().plusYears(10);
-        } else {
-            end = LocalDateTime.parse(rangeEnd, FORMATTER);
-        }
-
-        return eventService.getAllEvents(text, categories, paid, start, end, onlyAvailable, sort, from, size, request);
+        return eventService.getAllEvents(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size, request);
     }
 
     @GetMapping("/{id}")

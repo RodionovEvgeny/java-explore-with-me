@@ -1,7 +1,6 @@
 package ru.practicum.service.user;
 
 import lombok.AllArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,7 +34,8 @@ public class UserController {
     public List<EventShortDto> getUsersEvents(@PathVariable Long userId,
                                               @RequestParam(defaultValue = "0") Integer from,
                                               @RequestParam(defaultValue = "10") Integer size) {
-        return userService.getUsersEvents(userId, from, size);
+        List<EventShortDto> list = userService.getUsersEvents(userId, from, size);
+        return list;
     }
 
     @PostMapping("/{userId}/events")
