@@ -29,14 +29,14 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> getAllEvents(String text, List<Long> categories, Boolean paid, String rangeStart,
-                                            String rangeEnd, Boolean onlyAvailable, SortState sort, Integer from,
+                                            String rangeEnd, boolean onlyAvailable, SortState sort, Integer from,
                                             Integer size, HttpServletRequest request) {
 
         statsClient.addHit(request, "main_service");
         Pageable pageable = PageRequest.of(from / size, size);
         List<Event> events;
 
-        if (text == null && categories == null && paid == null && rangeStart == null && rangeEnd == null && onlyAvailable == null && sort == null) {
+        if (text == null && categories == null && paid == null && rangeStart == null && rangeEnd == null && sort == null) {
             events = eventRepository.findAll(pageable).toList();
         } else {
             LocalDateTime start;

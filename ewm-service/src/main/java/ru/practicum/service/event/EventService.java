@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface EventService {
-    List<EventShortDto> getAllEvents(String text, List<Long> categories, Boolean paid, String rangeStart, String rangeEnd, Boolean onlyAvailable, SortState sort, Integer from, Integer size, HttpServletRequest request);
+    List<EventShortDto> getAllEvents(String text, List<Long> categories, Boolean paid, String rangeStart, String rangeEnd, boolean onlyAvailable, SortState sort, Integer from, Integer size, HttpServletRequest request);
 
     EventFullDto getEventById(Long eventId, HttpServletRequest request);
 
