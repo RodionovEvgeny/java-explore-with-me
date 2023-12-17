@@ -33,8 +33,8 @@ public class PrivateRequestController {
     @PatchMapping("/events/{eventId}/requests")
     public EventRequestStatusUpdateResult confirmRequests(@PathVariable Long userId,
                                                           @PathVariable Long eventId,
-                                                          @RequestBody EventRequestStatusUpdateRequest EventRequest) {
-        return requestService.confirmRequests(userId, eventId, EventRequest);
+                                                          @RequestBody EventRequestStatusUpdateRequest eventRequest) {
+        return requestService.confirmRequests(userId, eventId, eventRequest);
     }
 
     @GetMapping("/requests")
