@@ -7,9 +7,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.StatsClient;
 import ru.practicum.StatsDto;
+import ru.practicum.service.category.Category;
+import ru.practicum.service.category.CategoryRepository;
 import ru.practicum.service.category.CategoryService;
 import ru.practicum.service.exceptions.BadRequestException;
 import ru.practicum.service.exceptions.EntityNotFoundException;
+import ru.practicum.service.location.LocationRepository;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -23,7 +26,9 @@ import java.util.stream.Collectors;
 public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final StatsClient statsClient;
-    private final CategoryService categoryService;
+    private final LocationRepository locationRepository;
+
+    private final CategoryRepository categoryRepository;
 
     private final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -93,7 +98,14 @@ public class EventServiceImpl implements EventService {
     public EventFullDto updateEventByAdmin(Long eventId, UpdateEventAdminRequest updateEvent) {
         Event eventToUpdate = validateEventById(eventId);
         if (updateEvent.getCategory() != null) {
-            eventToUpdate.setCategory(categoryService.getCategoryById(updateEvent.getCategory()));
+            Category category = validateCategoryById(updateEvent.getCategory());
+            eventToUpdate.setCategory(category);
+        }
+        if (updateEvent.getLocation() != null) {
+            locationRepository.save(updateEvent.getLocation());
+        }
+        if (updateEvent.getEventDate() != null && updateEvent.getEventDate().isBefore(LocalDateTime.now().plusHours(2))){
+            throw new BadRequestException("Время начала события не может быть раньше чем через 2 часа.");
         }
         eventToUpdate = EventMapper.updateEvent(eventToUpdate, updateEvent);
         //eventToUpdate.setState(EventStatus.PENDING);
@@ -115,5 +127,11 @@ public class EventServiceImpl implements EventService {
             event.setViews(stats.size());
         }
         return event;
+    }
+
+    private Category validateCategoryById(Long catId) {
+        return categoryRepository.findById(catId).orElseThrow(() -> new EntityNotFoundException(
+                String.format("Категория с id = %s не найдена!", catId),
+                Category.class.getName()));
     }
 }

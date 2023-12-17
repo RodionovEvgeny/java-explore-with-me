@@ -52,6 +52,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto addUser(UserDto userDto) {
+        validateUsersName(userDto);
         return UserMapper.toUserDto(userRepository.save(UserMapper.toUser(userDto)));
     }
 
@@ -119,6 +120,14 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException(
                 String.format("Пользователь с id = %s не найден!", userId),
                 User.class.getName()));
+    }
+
+    private UserDto validateUsersName(UserDto userDto) {
+        if (userRepository.countByName(userDto.getName()) > 0) {
+            throw new ConflictException(
+                    String.format("Пользователь с именем %s уже зарегистрирован.", userDto.getName()));
+        }
+        return userDto;
     }
 
     private Category validateCategoryById(Long catId) {

@@ -1,5 +1,7 @@
 package ru.practicum.service.category;
 
+import java.util.List;
+
 public interface CategoryService {
     CategoryDto addCategory(CategoryDto categoryDto);
 
@@ -7,5 +9,7 @@ public interface CategoryService {
 
     CategoryDto updateCategory(Long catId, CategoryDto categoryDto);
 
-    Category getCategoryById(Long catId);
+    CategoryDto getCategoryById(Long catId);
+
+    List<CategoryDto> getAllCategories(Integer from, Integer size);
 }

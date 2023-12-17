@@ -50,7 +50,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/categories/{catId}")
-    public void deleteCategory(@RequestParam(name = "catId") Long catId) {
+    public void deleteCategory(@RequestParam Long catId) {
         categoryService.deleteCategory(catId);
     }
 
@@ -87,8 +87,8 @@ public class AdminController {
     }
 
     @PatchMapping("/events/{eventId}")
-    public EventFullDto updateEventByAdmin(@PathVariable(name = "eventId") Long eventId,
-                                           @RequestBody UpdateEventAdminRequest updateEvent) {
+    public EventFullDto updateEventByAdmin(@PathVariable Long eventId,
+                                           @RequestBody @Valid UpdateEventAdminRequest updateEvent) {
         return eventService.updateEventByAdmin(eventId, updateEvent);
     }
 
