@@ -16,6 +16,7 @@ import ru.practicum.service.event.EventRepository;
 import ru.practicum.service.event.EventShortDto;
 import ru.practicum.service.event.EventStatus;
 import ru.practicum.service.event.NewEventDto;
+import ru.practicum.service.event.StateAction;
 import ru.practicum.service.event.UpdateEventAdminRequest;
 import ru.practicum.service.exceptions.BadRequestException;
 import ru.practicum.service.exceptions.ConflictException;
@@ -109,8 +110,14 @@ public class UserServiceImpl implements UserService {
         if (updateEvent.getLocation() != null) {
             locationRepository.save(updateEvent.getLocation());
         }
-        eventToUpdate = EventMapper.updateEvent(eventToUpdate, updateEvent);
-        eventToUpdate.setState(EventStatus.PENDING);
+        EventMapper.updateEvent(eventToUpdate, updateEvent);
+        if (updateEvent.getStateAction() != null &&
+                updateEvent.getStateAction().equals(StateAction.CANCEL_REVIEW)) {
+            eventToUpdate.setState(EventStatus.CANCELED);
+        } else {
+            eventToUpdate.setState(EventStatus.PENDING);
+        }
+
         Event updatedEvent = eventRepository.save(eventToUpdate);
         return EventMapper.toEventFullDto(updatedEvent);
 
@@ -144,7 +151,7 @@ public class UserServiceImpl implements UserService {
 
     private Event addViews(Event event) {
         String uri = "/events/" + event.getId();
-        List<StatsDto> stats = statsClient.getStats(LocalDateTime.now().minusYears(1000), LocalDateTime.now(), List.of(uri), Boolean.FALSE);
+        List<StatsDto> stats = statsClient.getStats(LocalDateTime.now().minusYears(1000), LocalDateTime.now().plusMinutes(5), new String[]{uri}, Boolean.FALSE);
         if (!stats.isEmpty()) {
             event.setViews(stats.size());
         }

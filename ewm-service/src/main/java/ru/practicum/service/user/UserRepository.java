@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findAllByIdIn(List<Long> users, Pageable pageable);
+
     Long countByName(String name);
 }

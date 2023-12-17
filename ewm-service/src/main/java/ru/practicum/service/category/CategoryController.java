@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.service.compilation.CompilationDto;
 
 import java.util.List;
 
@@ -19,7 +18,7 @@ public class CategoryController {
 
     @GetMapping
     public List<CategoryDto> getCategories(@RequestParam(defaultValue = "0") Integer from,
-                                                @RequestParam(defaultValue = "10") Integer size) {
+                                           @RequestParam(defaultValue = "10") Integer size) {
         return categoryService.getAllCategories(from, size);
     }
 

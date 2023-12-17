@@ -35,7 +35,7 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
-    public CompilationDto updateCompilation(Long compId, NewCompilationDto newCompilationDto) {
+    public CompilationDto updateCompilation(Long compId, UpdateCompilationDto newCompilationDto) {
         Compilation compilationToUpdate = validateCompilationById(compId);
 
         if (newCompilationDto.getPinned() != null) compilationToUpdate.setPinned(newCompilationDto.getPinned());

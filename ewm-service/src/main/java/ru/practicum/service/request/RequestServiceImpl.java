@@ -53,7 +53,8 @@ public class RequestServiceImpl implements RequestService {
         if (!event.getState().equals(EventStatus.PUBLISHED)) {
             throw new ConflictException(String.format("Событие с id=%s еще не опубликовано.", eventId));
         }
-        if (event.getParticipantLimit() != 0 && event.getParticipantLimit() <= event.getConfirmedRequests()) {
+        if (event.getParticipantLimit() != 0 &&
+                event.getParticipantLimit() <= requestRepository.countByEventIdAndStatus(eventId, RequestStatus.CONFIRMED)) {
             throw new ConflictException(String.format("На событие с id=%s не осталось свободных мест.", eventId));
         }
 
@@ -82,7 +83,7 @@ public class RequestServiceImpl implements RequestService {
     public EventRequestStatusUpdateResult confirmRequests(long userId, long eventId,
                                                           EventRequestStatusUpdateRequest updateRequest) {
         Event event = validateEventById(eventId);
-        User user = validateUserById(userId);
+        validateUserById(userId);
         if (userId != event.getInitiator().getId()) {
             throw new ConflictException(String.format("Пользователь с id = %s не создатель события!", userId));
         }
@@ -106,6 +107,12 @@ public class RequestServiceImpl implements RequestService {
             }
             result.setRejectedRequests(requests.stream().map(RequestMapper::toRequestDto).collect(Collectors.toList()));
         } else {
+
+            if (event.getParticipantLimit() - event.getConfirmedRequests() == 0 &&
+                    updateRequest.getStatus().equals(RequestStatus.CONFIRMED)) {
+                throw new ConflictException(String.format("На событие с id=%s не осталось свободных мест.", eventId));
+            }
+
             if (event.getParticipantLimit() == 0) {
                 for (ParticipationRequest request : requests) {
                     request.setStatus(RequestStatus.CONFIRMED);

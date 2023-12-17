@@ -23,12 +23,12 @@ public interface EndpointHitRepository extends JpaRepository<EndpointHit, Long> 
             "ORDER BY COUNT(e.ip) DESC")
     List<Stats> getStatsNoUrisUniqueIp(LocalDateTime start, LocalDateTime end);
 
-    @Query("SELECT new ru.practicum.model.Stats(e.app, e.uri, COUNT(e.ip)) " +
+    @Query("SELECT new ru.practicum.model.Stats(e.app, e.uri, COUNT(e.ip) as hits) " +
             "FROM EndpointHit AS e " +
             "WHERE e.timestamp BETWEEN ?1 AND ?2 " +
             "AND e.uri in ?3 " +
-            "GROUP BY e.app, e.uri " +
-            "ORDER BY COUNT(e.ip) DESC")
+            "GROUP BY (e.app, e.uri) " +
+            "ORDER BY hits DESC")
     List<Stats> getStatsWithUrisNotUniqueIp(LocalDateTime start, LocalDateTime end, List<String> uris);
 
     @Query("SELECT new ru.practicum.model.Stats(e.app, e.uri, COUNT(DISTINCT e.ip)) " +

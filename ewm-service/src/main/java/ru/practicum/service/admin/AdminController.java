@@ -17,6 +17,7 @@ import ru.practicum.service.category.CategoryService;
 import ru.practicum.service.compilation.CompilationDto;
 import ru.practicum.service.compilation.CompilationService;
 import ru.practicum.service.compilation.NewCompilationDto;
+import ru.practicum.service.compilation.UpdateCompilationDto;
 import ru.practicum.service.event.EventFullDto;
 import ru.practicum.service.event.EventService;
 import ru.practicum.service.event.EventStatus;
@@ -50,7 +51,8 @@ public class AdminController {
     }
 
     @DeleteMapping("/categories/{catId}")
-    public void deleteCategory(@RequestParam Long catId) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteCategory(@PathVariable Long catId) {
         categoryService.deleteCategory(catId);
     }
 
@@ -93,7 +95,7 @@ public class AdminController {
     }
 
     @GetMapping("/users")
-    public List<UserDto> getUsers(@RequestParam(required = false) List<Long> users,
+    public List<UserDto> getUsers(@RequestParam(required = false, name = "ids") List<Long> users,
                                   @RequestParam(defaultValue = "0") Integer from,
                                   @RequestParam(defaultValue = "10") Integer size) {
         return userService.getUsers(users, from, size);
@@ -106,6 +108,7 @@ public class AdminController {
     }
 
     @DeleteMapping("/users/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
     }
@@ -117,13 +120,14 @@ public class AdminController {
     }
 
     @DeleteMapping("/compilations/{compId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCompilation(@PathVariable Long compId) {
         compilationService.deleteCompilation(compId);
     }
 
     @PatchMapping("/compilations/{compId}")
     public CompilationDto updateCompilation(@PathVariable(name = "compId") Long compId,
-                                            @RequestBody @Valid NewCompilationDto compilationDto) {
+                                            @RequestBody @Valid UpdateCompilationDto compilationDto) {
         return compilationService.updateCompilation(compId, compilationDto);
     }
 }

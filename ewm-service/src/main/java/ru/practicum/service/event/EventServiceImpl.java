@@ -9,8 +9,8 @@ import ru.practicum.StatsClient;
 import ru.practicum.StatsDto;
 import ru.practicum.service.category.Category;
 import ru.practicum.service.category.CategoryRepository;
-import ru.practicum.service.category.CategoryService;
 import ru.practicum.service.exceptions.BadRequestException;
+import ru.practicum.service.exceptions.ConflictException;
 import ru.practicum.service.exceptions.EntityNotFoundException;
 import ru.practicum.service.location.LocationRepository;
 
@@ -70,11 +70,12 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto getEventById(Long eventId, HttpServletRequest request) {
         Event event = validateEventById(eventId);
-        if (event.getState()!= EventStatus.PUBLISHED){
+        if (event.getState() != EventStatus.PUBLISHED) {
             throw new EntityNotFoundException("Событие еще не опубликовано", Event.class.getName());
         }
         statsClient.addHit(request, "main_service");
-        return EventMapper.toEventFullDto(event);
+
+        return EventMapper.toEventFullDto(addViews(event));
     }
 
     @Override
@@ -97,6 +98,17 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto updateEventByAdmin(Long eventId, UpdateEventAdminRequest updateEvent) {
         Event eventToUpdate = validateEventById(eventId);
+        if (updateEvent.getStateAction() != null &&
+                updateEvent.getStateAction().equals(StateAction.PUBLISH_EVENT) &&
+                !eventToUpdate.getState().equals(EventStatus.PENDING)) {
+            throw new ConflictException("Публиковать можно только ожидающие события!");
+        }
+        if (updateEvent.getStateAction() != null &&
+                updateEvent.getStateAction().equals(StateAction.REJECT_EVENT) &&
+                !eventToUpdate.getState().equals(EventStatus.PENDING)) {
+            throw new ConflictException("Отменить можно только ожидающее событие!");
+        }
+
         if (updateEvent.getCategory() != null) {
             Category category = validateCategoryById(updateEvent.getCategory());
             eventToUpdate.setCategory(category);
@@ -104,11 +116,11 @@ public class EventServiceImpl implements EventService {
         if (updateEvent.getLocation() != null) {
             locationRepository.save(updateEvent.getLocation());
         }
-        if (updateEvent.getEventDate() != null && updateEvent.getEventDate().isBefore(LocalDateTime.now().plusHours(2))){
+        if (updateEvent.getEventDate() != null && updateEvent.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
             throw new BadRequestException("Время начала события не может быть раньше чем через 2 часа.");
         }
-        eventToUpdate = EventMapper.updateEvent(eventToUpdate, updateEvent);
-        //eventToUpdate.setState(EventStatus.PENDING);
+        EventMapper.updateEvent(eventToUpdate, updateEvent);
+
         Event updatedEvent = eventRepository.save(eventToUpdate);
         return EventMapper.toEventFullDto(updatedEvent);
     }
@@ -122,7 +134,7 @@ public class EventServiceImpl implements EventService {
 
     private Event addViews(Event event) {
         String uri = "/events/" + event.getId();
-        List<StatsDto> stats = statsClient.getStats(LocalDateTime.now().minusYears(1000), LocalDateTime.now(), List.of(uri), Boolean.FALSE);
+        List<StatsDto> stats = statsClient.getStats(LocalDateTime.now().minusYears(1000), LocalDateTime.now().plusMinutes(5), new String[]{uri}, Boolean.FALSE);
         if (!stats.isEmpty()) {
             event.setViews(stats.size());
         }
