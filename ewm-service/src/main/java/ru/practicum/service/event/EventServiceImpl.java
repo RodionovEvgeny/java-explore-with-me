@@ -65,6 +65,9 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto getEventById(Long eventId, HttpServletRequest request) {
         Event event = validateEventById(eventId);
+        if (event.getState()!= EventStatus.PUBLISHED){
+            throw new EntityNotFoundException("Событие еще не опубликовано", Event.class.getName());
+        }
         statsClient.addHit(request, "main_service");
         return EventMapper.toEventFullDto(event);
     }
@@ -92,7 +95,9 @@ public class EventServiceImpl implements EventService {
         if (updateEvent.getCategory() != null) {
             eventToUpdate.setCategory(categoryService.getCategoryById(updateEvent.getCategory()));
         }
-        Event updatedEvent = eventRepository.save(EventMapper.updateEvent(eventToUpdate, updateEvent));
+        eventToUpdate = EventMapper.updateEvent(eventToUpdate, updateEvent);
+        //eventToUpdate.setState(EventStatus.PENDING);
+        Event updatedEvent = eventRepository.save(eventToUpdate);
         return EventMapper.toEventFullDto(updatedEvent);
     }
 
@@ -107,7 +112,7 @@ public class EventServiceImpl implements EventService {
         String uri = "/events/" + event.getId();
         List<StatsDto> stats = statsClient.getStats(LocalDateTime.now().minusYears(1000), LocalDateTime.now(), List.of(uri), Boolean.FALSE);
         if (!stats.isEmpty()) {
-            event.setViews(stats.get(0).getHits());
+            event.setViews(stats.size());
         }
         return event;
     }

@@ -58,8 +58,8 @@ public class RequestServiceImpl implements RequestService {
         }
 
         RequestStatus status;
-        if (event.isRequestModeration()) status = RequestStatus.PENDING;
-        else status = RequestStatus.CONFIRMED;
+        if (!event.isRequestModeration() || event.getParticipantLimit() == 0) status = RequestStatus.CONFIRMED;
+        else status = RequestStatus.PENDING;
 
         ParticipationRequest request = ParticipationRequest.builder()
                 .created(LocalDateTime.now())
@@ -101,15 +101,17 @@ public class RequestServiceImpl implements RequestService {
 
         if (updateRequest.getStatus().equals(RequestStatus.REJECTED)) {
             for (ParticipationRequest request : requests) {
-                request.setStatus(updateRequest.getStatus());
+                request.setStatus(RequestStatus.REJECTED);
+                requestRepository.save(request);
             }
             result.setRejectedRequests(requests.stream().map(RequestMapper::toRequestDto).collect(Collectors.toList()));
         } else {
             if (event.getParticipantLimit() == 0) {
                 for (ParticipationRequest request : requests) {
-                    request.setStatus(updateRequest.getStatus());
+                    request.setStatus(RequestStatus.CONFIRMED);
+                    requestRepository.save(request);
                 }
-                result.setRejectedRequests(requests.stream().map(RequestMapper::toRequestDto).collect(Collectors.toList()));
+                result.setConfirmedRequests(requests.stream().map(RequestMapper::toRequestDto).collect(Collectors.toList()));
                 event.setConfirmedRequests(requests.size());
                 eventRepository.save(event);
             } else {
@@ -118,14 +120,16 @@ public class RequestServiceImpl implements RequestService {
                 List<ParticipationRequestDto> rejectedRequests = new ArrayList<>();
                 List<ParticipationRequestDto> confirmedRequests = new ArrayList<>();
 
-                for (int n = 0; n < availableRequests; n++) {
+                for (int n = 0; n < availableRequests && n < requests.size(); n++) {
                     requests.get(n).setStatus(RequestStatus.CONFIRMED);
                     confirmedRequests.add(RequestMapper.toRequestDto(requests.get(n)));
+                    requestRepository.save(requests.get(n));
                     confirmedCount++;
                 }
-                for (int n = confirmedCount; n < requests.size(); n++) {
+                for (int n = confirmedCount + 1; n < requests.size(); n++) {
                     requests.get(n).setStatus(RequestStatus.REJECTED);
                     rejectedRequests.add(RequestMapper.toRequestDto(requests.get(n)));
+                    requestRepository.save(requests.get(n));
                 }
                 result.setRejectedRequests(rejectedRequests);
                 result.setConfirmedRequests(confirmedRequests);

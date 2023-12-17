@@ -89,10 +89,10 @@ public class EventMapper {
         if (updateEvent.getStateAction() != null) {
             switch (updateEvent.getStateAction()) {
                 case REJECT_EVENT:
-                    eventToUpdate.setState(EventStatus.PUBLISHED);
+                    eventToUpdate.setState(EventStatus.CANCELED);
                     break;
                 case PUBLISH_EVENT:
-                    eventToUpdate.setState(EventStatus.CANCELED);
+                    eventToUpdate.setState(EventStatus.PUBLISHED);
                     break;
             }
         }

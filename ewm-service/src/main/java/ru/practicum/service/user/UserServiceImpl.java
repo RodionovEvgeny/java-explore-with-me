@@ -108,7 +108,9 @@ public class UserServiceImpl implements UserService {
         if (updateEvent.getLocation() != null) {
             locationRepository.save(updateEvent.getLocation());
         }
-        Event updatedEvent = eventRepository.save(EventMapper.updateEvent(eventToUpdate, updateEvent));
+        eventToUpdate = EventMapper.updateEvent(eventToUpdate, updateEvent);
+        eventToUpdate.setState(EventStatus.PENDING);
+        Event updatedEvent = eventRepository.save(eventToUpdate);
         return EventMapper.toEventFullDto(updatedEvent);
 
     }
@@ -135,7 +137,7 @@ public class UserServiceImpl implements UserService {
         String uri = "/events/" + event.getId();
         List<StatsDto> stats = statsClient.getStats(LocalDateTime.now().minusYears(1000), LocalDateTime.now(), List.of(uri), Boolean.FALSE);
         if (!stats.isEmpty()) {
-            event.setViews(stats.get(0).getHits());
+            event.setViews(stats.size());
         }
         return event;
     }
