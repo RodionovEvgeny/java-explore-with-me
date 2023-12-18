@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.EndpointHitDto;
 import ru.practicum.StatsDto;
+import ru.practicum.exceptions.BadRequestException;
 import ru.practicum.model.EndpointHit;
 import ru.practicum.model.EndpointHitMapper;
 import ru.practicum.model.Stats;
@@ -28,6 +29,7 @@ public class StatServiceImpl implements StatService {
 
     @Override
     public List<StatsDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
+        if (start.isAfter(end)) throw new BadRequestException("Время начала выборки должно быть до времени окончания.");
         List<Stats> stats;
         if (uris == null || uris.isEmpty()) {
             stats = unique ? endpointHitRepository.getStatsNoUrisUniqueIp(start, end)
