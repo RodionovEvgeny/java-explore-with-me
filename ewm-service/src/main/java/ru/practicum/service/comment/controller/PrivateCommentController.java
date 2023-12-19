@@ -53,9 +53,11 @@ public class PrivateCommentController {
     public List<CommentFullDto> getUsersComments(@PathVariable long userId,
                                                  @RequestParam(required = false) Long eventId,
                                                  @RequestParam(required = false) CommentState commentState,
+                                                 @RequestParam(required = false) String rangeStart,
+                                                 @RequestParam(required = false) String rangeEnd,
                                                  @RequestParam(defaultValue = "0") Integer from,
                                                  @RequestParam(defaultValue = "10") Integer size) {
-        return commentService.getComments(userId, eventId, commentState, from, size);
+        return commentService.getUsersComments(userId, eventId, commentState, rangeStart, rangeEnd, from, size);
     }
 
     @GetMapping("/comments/{commentId}")

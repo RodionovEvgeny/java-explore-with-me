@@ -15,12 +15,14 @@ import ru.practicum.service.comment.model.CommentStateAction;
 import ru.practicum.service.comment.repository.CommentRepository;
 import ru.practicum.service.event.model.Event;
 import ru.practicum.service.event.repository.EventRepository;
+import ru.practicum.service.exceptions.BadRequestException;
 import ru.practicum.service.exceptions.ConflictException;
 import ru.practicum.service.exceptions.EntityNotFoundException;
 import ru.practicum.service.user.model.User;
 import ru.practicum.service.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,11 +31,13 @@ import java.util.stream.Collectors;
 @Transactional
 public class CommentServiceImpl implements CommentService {
 
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<CommentDto> getAllEventsComments(long eventId, Integer from, Integer size) {
         validateEventById(eventId);
         Pageable pageable = PageRequest.of(from / size, size);
@@ -43,6 +47,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CommentDto getCommentById(long commentId) {
         return CommentMapper.toCommentDto(validateCommentById(commentId));
     }
@@ -81,11 +86,29 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public List<CommentFullDto> getComments(Long userId, Long eventId, CommentState commentState, Integer from, Integer size) {
-        return null;
+    @Transactional(readOnly = true)
+    public List<CommentFullDto> getUsersComments(long userId, Long eventId, CommentState commentState,
+                                                 String rangeStart, String rangeEnd, Integer from, Integer size) {
+        validateUserById(userId);
+        return getComments(userId, eventId, commentState, rangeStart, rangeEnd, from, size);
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<CommentFullDto> getComments(Long userId, Long eventId, CommentState commentState,
+                                            String rangeStart, String rangeEnd, int from, int size) {
+        Pageable pageable = PageRequest.of(from / size, size);
+        LocalDateTime start = getStartDateTime(rangeStart);
+        LocalDateTime end = getEndDateTime(rangeEnd);
+        validateStartEndDates(start, end);
+
+        return commentRepository.findComments(userId, eventId, commentState, start, end, pageable).stream()
+                .map(CommentMapper::toCommentFullDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public CommentFullDto getUsersCommentById(long userId, long commentId) {
         validateUserById(userId);
         Comment comment = validateCommentById(commentId);
@@ -103,6 +126,7 @@ public class CommentServiceImpl implements CommentService {
         }
         return CommentMapper.toCommentFullDto(commentRepository.save(comment));
     }
+
 
     private void validateUserAsCommentAuthor(long userId, Comment comment) {
         if (comment.getCommentator().getId() != userId) {
@@ -128,5 +152,27 @@ public class CommentServiceImpl implements CommentService {
         return eventRepository.findById(eventId).orElseThrow(() -> new EntityNotFoundException(
                 String.format("Событие с id = %s не найдено!", eventId),
                 Event.class.getName()));
+    }
+
+    private LocalDateTime getStartDateTime(String rangeStart) {
+        if (rangeStart == null) {
+            return LocalDateTime.now();
+        } else {
+            return LocalDateTime.parse(rangeStart, FORMATTER);
+        }
+    }
+
+    private LocalDateTime getEndDateTime(String rangeEnd) {
+        if (rangeEnd == null) {
+            return LocalDateTime.now().plusYears(10);
+        } else {
+            return LocalDateTime.parse(rangeEnd, FORMATTER);
+        }
+    }
+
+    private void validateStartEndDates(LocalDateTime start, LocalDateTime end) {
+        if (end.isBefore(start)) {
+            throw new BadRequestException("Дата конца выборки не может быть раньше даты начала выборки");
+        }
     }
 }

@@ -20,9 +20,11 @@ public interface CommentService {
 
     void deleteComment(long userId, long commentId);
 
-    List<CommentFullDto> getComments(Long userId, Long eventId, CommentState commentState, Integer from, Integer size);
+    List<CommentFullDto> getComments(Long userId, Long eventId, CommentState commentState, String rangeStart, String rangeEnd, int from, int size);
 
     CommentFullDto getUsersCommentById(long userId, long commentId);
 
     CommentFullDto moderateComment(long commentId, CommentStateAction commentStateAction);
+
+    List<CommentFullDto> getUsersComments(long userId, Long eventId, CommentState commentState, String rangeStart, String rangeEnd, Integer from, Integer size);
 }
