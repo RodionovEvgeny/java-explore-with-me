@@ -66,9 +66,9 @@ public class RequestServiceImpl implements RequestService {
             throw new ConflictException(String.format("На событие с id=%s не осталось свободных мест.", eventId));
         }
 
-        RequestStatus status;
-        if (!event.isRequestModeration() || event.getParticipantLimit() == 0) status = RequestStatus.CONFIRMED;
-        else status = RequestStatus.PENDING;
+        RequestStatus status = (!event.isRequestModeration() || event.getParticipantLimit() == 0)
+                ? RequestStatus.CONFIRMED
+                : RequestStatus.PENDING;
 
         ParticipationRequest request = ParticipationRequest.builder()
                 .created(LocalDateTime.now())
@@ -116,43 +116,46 @@ public class RequestServiceImpl implements RequestService {
                 requestRepository.save(request);
             }
             result.setRejectedRequests(requests.stream().map(RequestMapper::toRequestDto).collect(Collectors.toList()));
-        } else {
-            if (event.getParticipantLimit() - event.getConfirmedRequests() == 0 &&
-                    updateRequest.getStatus().equals(RequestStatus.CONFIRMED)) {
-                throw new ConflictException(String.format("На событие с id=%s не осталось свободных мест.", eventId));
-            }
-
-            if (event.getParticipantLimit() == 0) {
-                for (ParticipationRequest request : requests) {
-                    request.setStatus(RequestStatus.CONFIRMED);
-                    requestRepository.save(request);
-                }
-                result.setConfirmedRequests(requests.stream().map(RequestMapper::toRequestDto).collect(Collectors.toList()));
-                event.setConfirmedRequests(requests.size());
-                eventRepository.save(event);
-            } else {
-                int availableRequests = event.getParticipantLimit() - event.getConfirmedRequests();
-                int confirmedCount = 0;
-                List<ParticipationRequestDto> rejectedRequests = new ArrayList<>();
-                List<ParticipationRequestDto> confirmedRequests = new ArrayList<>();
-
-                for (int n = 0; n < availableRequests && n < requests.size(); n++) {
-                    requests.get(n).setStatus(RequestStatus.CONFIRMED);
-                    confirmedRequests.add(RequestMapper.toRequestDto(requests.get(n)));
-                    requestRepository.save(requests.get(n));
-                    confirmedCount++;
-                }
-                for (int n = confirmedCount + 1; n < requests.size(); n++) {
-                    requests.get(n).setStatus(RequestStatus.REJECTED);
-                    rejectedRequests.add(RequestMapper.toRequestDto(requests.get(n)));
-                    requestRepository.save(requests.get(n));
-                }
-                result.setRejectedRequests(rejectedRequests);
-                result.setConfirmedRequests(confirmedRequests);
-                event.setConfirmedRequests(event.getConfirmedRequests() + confirmedRequests.size());
-                eventRepository.save(event);
-            }
+            return result;
         }
+
+        if (event.getParticipantLimit() - event.getConfirmedRequests() == 0 &&
+                updateRequest.getStatus().equals(RequestStatus.CONFIRMED)) {
+            throw new ConflictException(String.format("На событие с id=%s не осталось свободных мест.", eventId));
+        }
+
+        if (event.getParticipantLimit() == 0) {
+            for (ParticipationRequest request : requests) {
+                request.setStatus(RequestStatus.CONFIRMED);
+                requestRepository.save(request);
+            }
+            result.setConfirmedRequests(requests.stream().map(RequestMapper::toRequestDto).collect(Collectors.toList()));
+            event.setConfirmedRequests(requests.size());
+            eventRepository.save(event);
+            return result;
+        }
+
+        int availableRequests = event.getParticipantLimit() - event.getConfirmedRequests();
+        int confirmedCount = 0;
+        List<ParticipationRequestDto> rejectedRequests = new ArrayList<>();
+        List<ParticipationRequestDto> confirmedRequests = new ArrayList<>();
+
+        for (int n = 0; n < availableRequests && n < requests.size(); n++) {
+            requests.get(n).setStatus(RequestStatus.CONFIRMED);
+            confirmedRequests.add(RequestMapper.toRequestDto(requests.get(n)));
+            requestRepository.save(requests.get(n));
+            confirmedCount++;
+        }
+        for (int n = confirmedCount + 1; n < requests.size(); n++) {
+            requests.get(n).setStatus(RequestStatus.REJECTED);
+            rejectedRequests.add(RequestMapper.toRequestDto(requests.get(n)));
+            requestRepository.save(requests.get(n));
+        }
+        result.setRejectedRequests(rejectedRequests);
+        result.setConfirmedRequests(confirmedRequests);
+        event.setConfirmedRequests(event.getConfirmedRequests() + confirmedRequests.size());
+        eventRepository.save(event);
+
         return result;
     }
 

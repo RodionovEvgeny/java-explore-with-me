@@ -36,43 +36,27 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Transactional
 public class EventServiceImpl implements EventService {
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final EventRepository eventRepository;
     private final StatsClient statsClient;
     private final LocationRepository locationRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
     @Transactional(readOnly = true)
     public List<EventShortDto> getAllEvents(String text, List<Long> categories, Boolean paid, String rangeStart,
                                             String rangeEnd, boolean onlyAvailable, SortState sort, Integer from,
                                             Integer size, HttpServletRequest request) {
-
         statsClient.addHit(request, "main_service");
+
         Pageable pageable = PageRequest.of(from / size, size);
         List<Event> events;
+        LocalDateTime start = getStartDateTime(rangeStart);
+        LocalDateTime end = getEndDateTime(rangeEnd);
+        validateStartEndDates(start, end);
 
-        if (text == null && categories == null && paid == null && rangeStart == null && rangeEnd == null && sort == null) {
-            events = eventRepository.findAll(pageable).toList();
-        } else {
-            LocalDateTime start;
-            LocalDateTime end;
-            if (rangeStart == null) {
-                start = LocalDateTime.now();
-            } else {
-                start = LocalDateTime.parse(rangeStart, FORMATTER);
-            }
-            if (rangeEnd == null) {
-                end = LocalDateTime.now().plusYears(10);
-            } else {
-                end = LocalDateTime.parse(rangeEnd, FORMATTER);
-            }
-            if (end.isBefore(start)) {
-                throw new BadRequestException("Дата конца выборки не может быть раньше даты начала выборки");
-            }
-            events = eventRepository.getAllEvents(text, categories, paid, start, end, onlyAvailable, pageable);
-        }
+        events = eventRepository.getAllEvents(text, categories, paid, start, end, onlyAvailable, pageable);
         return events.stream()
                 .map(this::addViews)
                 .map(EventMapper::toEventShortDto)
@@ -97,25 +81,11 @@ public class EventServiceImpl implements EventService {
                                                String rangeStart, String rangeEnd, Integer from, Integer size) {
         Pageable pageable = PageRequest.of(from / size, size);
         List<Event> events;
-        if (users == null && states == null && categories == null && rangeStart == null && rangeEnd == null) {
-            events = eventRepository.findAll(pageable).toList();
-        } else {
-            LocalDateTime start;
-            LocalDateTime end;
+        LocalDateTime start = getStartDateTime(rangeStart);
+        LocalDateTime end = getEndDateTime(rangeEnd);
+        validateStartEndDates(start, end);
 
-            if (rangeStart == null) {
-                start = LocalDateTime.now();
-            } else {
-                start = LocalDateTime.parse(rangeStart, FORMATTER);
-            }
-            if (rangeEnd == null) {
-                end = LocalDateTime.now().plusYears(10);
-            } else {
-                end = LocalDateTime.parse(rangeEnd, FORMATTER);
-            }
-
-            events = eventRepository.getAllEventsByAdmin(users, states, categories, start, end, pageable);
-        }
+        events = eventRepository.getAllEventsByAdmin(users, states, categories, start, end, pageable);
         return events.stream()
                 .map(this::addViews)
                 .map(EventMapper::toEventFullDto)
@@ -147,7 +117,7 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException("Время начала события не может быть раньше чем через 2 часа.");
         }
 
-        EventMapper.updateEvent(eventToUpdate, updateEvent);
+        updateEvent(eventToUpdate, updateEvent);
         Event updatedEvent = eventRepository.save(eventToUpdate);
         return EventMapper.toEventFullDto(updatedEvent);
     }
@@ -200,7 +170,7 @@ public class EventServiceImpl implements EventService {
             locationRepository.save(updateEvent.getLocation());
         }
 
-        EventMapper.updateEvent(eventToUpdate, updateEvent);
+        updateEvent(eventToUpdate, updateEvent);
 
         if (updateEvent.getStateAction() != null &&
                 updateEvent.getStateAction().equals(StateAction.CANCEL_REVIEW)) {
@@ -211,6 +181,44 @@ public class EventServiceImpl implements EventService {
 
         Event updatedEvent = eventRepository.save(eventToUpdate);
         return EventMapper.toEventFullDto(updatedEvent);
+    }
+
+    private Event updateEvent(Event eventToUpdate, UpdateEventRequest updateEvent) {
+        if (updateEvent.getAnnotation() != null) {
+            eventToUpdate.setAnnotation(updateEvent.getAnnotation());
+        }
+        if (updateEvent.getDescription() != null) {
+            eventToUpdate.setDescription(updateEvent.getDescription());
+        }
+        if (updateEvent.getEventDate() != null) {
+            eventToUpdate.setEventDate(updateEvent.getEventDate());
+        }
+        if (updateEvent.getLocation() != null) {
+            eventToUpdate.setLocation(updateEvent.getLocation());
+        }
+        if (updateEvent.getPaid() != null) {
+            eventToUpdate.setPaid(updateEvent.getPaid());
+        }
+        if (updateEvent.getParticipantLimit() != null) {
+            eventToUpdate.setParticipantLimit(updateEvent.getParticipantLimit());
+        }
+        if (updateEvent.getRequestModeration() != null) {
+            eventToUpdate.setRequestModeration(updateEvent.getRequestModeration());
+        }
+        if (updateEvent.getStateAction() != null) {
+            switch (updateEvent.getStateAction()) {
+                case REJECT_EVENT:
+                    eventToUpdate.setState(EventStatus.CANCELED);
+                    break;
+                case PUBLISH_EVENT:
+                    eventToUpdate.setState(EventStatus.PUBLISHED);
+                    break;
+            }
+        }
+        if (updateEvent.getTitle() != null) {
+            eventToUpdate.setTitle(updateEvent.getTitle());
+        }
+        return eventToUpdate;
     }
 
     private User validateUserById(Long userId) {
@@ -238,5 +246,27 @@ public class EventServiceImpl implements EventService {
         return categoryRepository.findById(catId).orElseThrow(() -> new EntityNotFoundException(
                 String.format("Категория с id = %s не найдена!", catId),
                 Category.class.getName()));
+    }
+
+    private LocalDateTime getStartDateTime(String rangeStart) {
+        if (rangeStart == null) {
+            return LocalDateTime.now();
+        } else {
+            return LocalDateTime.parse(rangeStart, FORMATTER);
+        }
+    }
+
+    private LocalDateTime getEndDateTime(String rangeEnd) {
+        if (rangeEnd == null) {
+            return LocalDateTime.now().plusYears(10);
+        } else {
+            return LocalDateTime.parse(rangeEnd, FORMATTER);
+        }
+    }
+
+    private void validateStartEndDates(LocalDateTime start, LocalDateTime end) {
+        if (end.isBefore(start)) {
+            throw new BadRequestException("Дата конца выборки не может быть раньше даты начала выборки");
+        }
     }
 }
