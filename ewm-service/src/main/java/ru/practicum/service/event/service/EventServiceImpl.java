@@ -48,31 +48,15 @@ public class EventServiceImpl implements EventService {
     public List<EventShortDto> getAllEvents(String text, List<Long> categories, Boolean paid, String rangeStart,
                                             String rangeEnd, boolean onlyAvailable, SortState sort, Integer from,
                                             Integer size, HttpServletRequest request) {
-
         statsClient.addHit(request, "main_service");
+
         Pageable pageable = PageRequest.of(from / size, size);
         List<Event> events;
+        LocalDateTime start = getStartDateTime(rangeStart);
+        LocalDateTime end = getEndDateTime(rangeEnd);
+        validateStartEndDates(start, end);
 
-        if (text == null && categories == null && paid == null && rangeStart == null && rangeEnd == null && sort == null) {
-            events = eventRepository.findAll(pageable).toList();
-        } else {
-            LocalDateTime start;
-            LocalDateTime end;
-            if (rangeStart == null) {
-                start = LocalDateTime.now();
-            } else {
-                start = LocalDateTime.parse(rangeStart, FORMATTER);
-            }
-            if (rangeEnd == null) {
-                end = LocalDateTime.now().plusYears(10);
-            } else {
-                end = LocalDateTime.parse(rangeEnd, FORMATTER);
-            }
-            if (end.isBefore(start)) {
-                throw new BadRequestException("Дата конца выборки не может быть раньше даты начала выборки");
-            }
-            events = eventRepository.getAllEvents(text, categories, paid, start, end, onlyAvailable, pageable);
-        }
+        events = eventRepository.getAllEvents(text, categories, paid, start, end, onlyAvailable, pageable);
         return events.stream()
                 .map(this::addViews)
                 .map(EventMapper::toEventShortDto)
@@ -97,25 +81,11 @@ public class EventServiceImpl implements EventService {
                                                String rangeStart, String rangeEnd, Integer from, Integer size) {
         Pageable pageable = PageRequest.of(from / size, size);
         List<Event> events;
-        if (users == null && states == null && categories == null && rangeStart == null && rangeEnd == null) {
-            events = eventRepository.findAll(pageable).toList();
-        } else {
-            LocalDateTime start;
-            LocalDateTime end;
+        LocalDateTime start = getStartDateTime(rangeStart);
+        LocalDateTime end = getEndDateTime(rangeEnd);
+        validateStartEndDates(start, end);
 
-            if (rangeStart == null) {
-                start = LocalDateTime.now();
-            } else {
-                start = LocalDateTime.parse(rangeStart, FORMATTER);
-            }
-            if (rangeEnd == null) {
-                end = LocalDateTime.now().plusYears(10);
-            } else {
-                end = LocalDateTime.parse(rangeEnd, FORMATTER);
-            }
-
-            events = eventRepository.getAllEventsByAdmin(users, states, categories, start, end, pageable);
-        }
+        events = eventRepository.getAllEventsByAdmin(users, states, categories, start, end, pageable);
         return events.stream()
                 .map(this::addViews)
                 .map(EventMapper::toEventFullDto)
@@ -276,5 +246,27 @@ public class EventServiceImpl implements EventService {
         return categoryRepository.findById(catId).orElseThrow(() -> new EntityNotFoundException(
                 String.format("Категория с id = %s не найдена!", catId),
                 Category.class.getName()));
+    }
+
+    private LocalDateTime getStartDateTime(String rangeStart) {
+        if (rangeStart == null) {
+            return LocalDateTime.now();
+        } else {
+            return LocalDateTime.parse(rangeStart, FORMATTER);
+        }
+    }
+
+    private LocalDateTime getEndDateTime(String rangeEnd) {
+        if (rangeEnd == null) {
+            return LocalDateTime.now().plusYears(10);
+        } else {
+            return LocalDateTime.parse(rangeEnd, FORMATTER);
+        }
+    }
+
+    private void validateStartEndDates(LocalDateTime start, LocalDateTime end) {
+        if (end.isBefore(start)) {
+            throw new BadRequestException("Дата конца выборки не может быть раньше даты начала выборки");
+        }
     }
 }
