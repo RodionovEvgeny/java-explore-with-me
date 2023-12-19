@@ -1,6 +1,5 @@
 package ru.practicum;
 
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -11,16 +10,17 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-@AllArgsConstructor
+
+@Service
 public class StatsClientImpl implements StatsClient {
     private final RestTemplate restTemplate;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -54,23 +54,24 @@ public class StatsClientImpl implements StatsClient {
     }
 
     @Override
-    public List<StatsDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
+    public List<StatsDto> getStats(LocalDateTime start, LocalDateTime end, String[] uris, Boolean unique) {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-        String uri = UriComponentsBuilder.fromHttpUrl("/stats")
+        /*String uri = UriComponentsBuilder.fromHttpUrl("/stats")
                 .queryParam("start", start.format(formatter))
                 .queryParam("end", end.format(formatter))
                 .queryParam("uris", uris)
                 .queryParam("unique", unique)
-                .toUriString();
+                .toUriString();*/
 
         ResponseEntity<List<StatsDto>> response =
                 restTemplate.exchange(
-                        uri,
+                        "/stats?start={start}&end={end}&uris={uris}&unique={unique}",
                         HttpMethod.GET,
                         new HttpEntity<>(headers),
                         new ParameterizedTypeReference<List<StatsDto>>() {
-                        });
+                        },
+                        start.format(formatter), end.format(formatter), uris, unique);
         return response.getBody();
     }
 }

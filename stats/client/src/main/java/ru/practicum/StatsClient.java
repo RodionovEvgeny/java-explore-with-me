@@ -8,5 +8,5 @@ public interface StatsClient {
 
     EndpointHitDto addHit(HttpServletRequest request, String app);
 
-    List<StatsDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique);
+    List<StatsDto> getStats(LocalDateTime start, LocalDateTime end, String[] uris, Boolean unique);
 }
