@@ -36,12 +36,12 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Transactional
 public class EventServiceImpl implements EventService {
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final EventRepository eventRepository;
     private final StatsClient statsClient;
     private final LocationRepository locationRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
     @Transactional(readOnly = true)
@@ -147,7 +147,7 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException("Время начала события не может быть раньше чем через 2 часа.");
         }
 
-        EventMapper.updateEvent(eventToUpdate, updateEvent);
+        updateEvent(eventToUpdate, updateEvent);
         Event updatedEvent = eventRepository.save(eventToUpdate);
         return EventMapper.toEventFullDto(updatedEvent);
     }
@@ -200,7 +200,7 @@ public class EventServiceImpl implements EventService {
             locationRepository.save(updateEvent.getLocation());
         }
 
-        EventMapper.updateEvent(eventToUpdate, updateEvent);
+        updateEvent(eventToUpdate, updateEvent);
 
         if (updateEvent.getStateAction() != null &&
                 updateEvent.getStateAction().equals(StateAction.CANCEL_REVIEW)) {
@@ -211,6 +211,44 @@ public class EventServiceImpl implements EventService {
 
         Event updatedEvent = eventRepository.save(eventToUpdate);
         return EventMapper.toEventFullDto(updatedEvent);
+    }
+
+    private Event updateEvent(Event eventToUpdate, UpdateEventRequest updateEvent) {
+        if (updateEvent.getAnnotation() != null) {
+            eventToUpdate.setAnnotation(updateEvent.getAnnotation());
+        }
+        if (updateEvent.getDescription() != null) {
+            eventToUpdate.setDescription(updateEvent.getDescription());
+        }
+        if (updateEvent.getEventDate() != null) {
+            eventToUpdate.setEventDate(updateEvent.getEventDate());
+        }
+        if (updateEvent.getLocation() != null) {
+            eventToUpdate.setLocation(updateEvent.getLocation());
+        }
+        if (updateEvent.getPaid() != null) {
+            eventToUpdate.setPaid(updateEvent.getPaid());
+        }
+        if (updateEvent.getParticipantLimit() != null) {
+            eventToUpdate.setParticipantLimit(updateEvent.getParticipantLimit());
+        }
+        if (updateEvent.getRequestModeration() != null) {
+            eventToUpdate.setRequestModeration(updateEvent.getRequestModeration());
+        }
+        if (updateEvent.getStateAction() != null) {
+            switch (updateEvent.getStateAction()) {
+                case REJECT_EVENT:
+                    eventToUpdate.setState(EventStatus.CANCELED);
+                    break;
+                case PUBLISH_EVENT:
+                    eventToUpdate.setState(EventStatus.PUBLISHED);
+                    break;
+            }
+        }
+        if (updateEvent.getTitle() != null) {
+            eventToUpdate.setTitle(updateEvent.getTitle());
+        }
+        return eventToUpdate;
     }
 
     private User validateUserById(Long userId) {

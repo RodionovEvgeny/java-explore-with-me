@@ -64,42 +64,4 @@ public class EventMapper {
                 .state(EventStatus.PENDING)
                 .build();
     }
-
-    public static Event updateEvent(Event eventToUpdate, UpdateEventRequest updateEvent) {
-        if (updateEvent.getAnnotation() != null) {
-            eventToUpdate.setAnnotation(updateEvent.getAnnotation());
-        }
-        if (updateEvent.getDescription() != null) {
-            eventToUpdate.setDescription(updateEvent.getDescription());
-        }
-        if (updateEvent.getEventDate() != null) {
-            eventToUpdate.setEventDate(updateEvent.getEventDate());
-        }
-        if (updateEvent.getLocation() != null) {
-            eventToUpdate.setLocation(updateEvent.getLocation());
-        }
-        if (updateEvent.getPaid() != null) {
-            eventToUpdate.setPaid(updateEvent.getPaid());
-        }
-        if (updateEvent.getParticipantLimit() != null) {
-            eventToUpdate.setParticipantLimit(updateEvent.getParticipantLimit());
-        }
-        if (updateEvent.getRequestModeration() != null) {
-            eventToUpdate.setRequestModeration(updateEvent.getRequestModeration());
-        }
-        if (updateEvent.getStateAction() != null) {
-            switch (updateEvent.getStateAction()) {
-                case REJECT_EVENT:
-                    eventToUpdate.setState(EventStatus.CANCELED);
-                    break;
-                case PUBLISH_EVENT:
-                    eventToUpdate.setState(EventStatus.PUBLISHED);
-                    break;
-            }
-        }
-        if (updateEvent.getTitle() != null) {
-            eventToUpdate.setTitle(updateEvent.getTitle());
-        }
-        return eventToUpdate;
-    }
 }
