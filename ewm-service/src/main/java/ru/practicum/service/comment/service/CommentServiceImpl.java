@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Transactional
 public class CommentServiceImpl implements CommentService {
-
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
@@ -49,7 +48,11 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional(readOnly = true)
     public CommentDto getCommentById(long commentId) {
-        return CommentMapper.toCommentDto(validateCommentById(commentId));
+        Comment comment = validateCommentById(commentId);
+        if (!comment.getState().equals(CommentState.PUBLISHED)) {
+            throw new ConflictException(String.format("Комментарий с id = %s еще не опубликован.", commentId));
+        }
+        return CommentMapper.toCommentDto(comment);
     }
 
     @Override
@@ -87,16 +90,10 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CommentFullDto> getUsersComments(long userId, Long eventId, CommentState commentState,
-                                                 String rangeStart, String rangeEnd, Integer from, Integer size) {
-        validateUserById(userId);
-        return getComments(userId, eventId, commentState, rangeStart, rangeEnd, from, size);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public List<CommentFullDto> getComments(Long userId, Long eventId, CommentState commentState,
                                             String rangeStart, String rangeEnd, int from, int size) {
+        if (userId != null) validateUserById(userId);
+        if (eventId != null) validateEventById(eventId);
         Pageable pageable = PageRequest.of(from / size, size);
         LocalDateTime start = getStartDateTime(rangeStart);
         LocalDateTime end = getEndDateTime(rangeEnd);
@@ -127,7 +124,6 @@ public class CommentServiceImpl implements CommentService {
         return CommentMapper.toCommentFullDto(commentRepository.save(comment));
     }
 
-
     private void validateUserAsCommentAuthor(long userId, Comment comment) {
         if (comment.getCommentator().getId() != userId) {
             throw new ConflictException(
@@ -156,7 +152,7 @@ public class CommentServiceImpl implements CommentService {
 
     private LocalDateTime getStartDateTime(String rangeStart) {
         if (rangeStart == null) {
-            return LocalDateTime.now();
+            return LocalDateTime.now().minusYears(1000);
         } else {
             return LocalDateTime.parse(rangeStart, FORMATTER);
         }
@@ -164,7 +160,7 @@ public class CommentServiceImpl implements CommentService {
 
     private LocalDateTime getEndDateTime(String rangeEnd) {
         if (rangeEnd == null) {
-            return LocalDateTime.now().plusYears(10);
+            return LocalDateTime.now();
         } else {
             return LocalDateTime.parse(rangeEnd, FORMATTER);
         }

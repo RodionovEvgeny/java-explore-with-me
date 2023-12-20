@@ -25,6 +25,4 @@ public interface CommentService {
     CommentFullDto getUsersCommentById(long userId, long commentId);
 
     CommentFullDto moderateComment(long commentId, CommentStateAction commentStateAction);
-
-    List<CommentFullDto> getUsersComments(long userId, Long eventId, CommentState commentState, String rangeStart, String rangeEnd, Integer from, Integer size);
 }

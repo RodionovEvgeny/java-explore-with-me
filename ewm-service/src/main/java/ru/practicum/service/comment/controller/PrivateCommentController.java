@@ -48,7 +48,6 @@ public class PrivateCommentController {
         commentService.deleteComment(userId, commentId);
     }
 
-    // todo возвращает все комментарии пользователя или его комментарии по одному событию
     @GetMapping("/comments")
     public List<CommentFullDto> getUsersComments(@PathVariable long userId,
                                                  @RequestParam(required = false) Long eventId,
@@ -57,12 +56,12 @@ public class PrivateCommentController {
                                                  @RequestParam(required = false) String rangeEnd,
                                                  @RequestParam(defaultValue = "0") Integer from,
                                                  @RequestParam(defaultValue = "10") Integer size) {
-        return commentService.getUsersComments(userId, eventId, commentState, rangeStart, rangeEnd, from, size);
+        return commentService.getComments(userId, eventId, commentState, rangeStart, rangeEnd, from, size);
     }
 
     @GetMapping("/comments/{commentId}")
     public CommentFullDto getUsersCommentById(@PathVariable long userId,
                                               @PathVariable long commentId) {
-        return commentService.getUsersCommentById(userId, commentId); //todo убедиться что пользователь - автор коммента
+        return commentService.getUsersCommentById(userId, commentId);
     }
 }
